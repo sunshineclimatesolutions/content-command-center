@@ -1,0 +1,116 @@
+# =============================================================================
+# Content Command Center - .gitignore
+# Stage 0: documentation only. Never commit secrets, runtime data, or media.
+# =============================================================================
+
+# --- Secrets and credentials -------------------------------------------------
+.env
+.env.*
+*.env
+!.env.example
+*.key
+*.pem
+*.pfx
+*.p12
+*.lic
+*.license
+secrets/
+credentials/
+auth/
+tokens/
+*.token
+token*.json
+client_secret*.json
+service-account*.json
+gha-creds*.json
+
+# --- Local runtime state -----------------------------------------------------
+_app/
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.db
+*.db-journal
+logs/
+*.log
+backups/
+*.bak
+*.tmp
+*.temp
+~$*
+
+# --- Private/exported media and customer data --------------------------------
+# Raw footage, masters, shorts, projects, transcripts, stills, publications.
+*.mp4
+*.mov
+*.mxf
+*.mkv
+*.avi
+*.wmv
+*.webm
+*.m4v
+*.mts
+*.m2ts
+*.braw
+*.r3d
+*.drp
+*.drb
+*.drt
+*.dctl
+*.cube
+*.wav
+*.aif
+*.aiff
+*.flac
+*.m4a
+*.mp3
+*.srt
+*.vtt
+*.ass
+*.ttml
+*.jpg
+*.jpeg
+*.png
+*.heic
+*.dng
+*.tif
+*.tiff
+*.webp
+*.psd
+ContentCommandCenter/
+SCS/
+SPARKLING_STANDARD/
+00_INBOX/
+RESOLVE_EXPORTS/
+IPHONE_IMPORT/
+
+# Screenshots and recordings of real content (only synthetic, tiny fixtures allowed)
+captures/
+screenshots/
+recordings/
+
+# --- Local tools / caches ----------------------------------------------------
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- OS / editor -------------------------------------------------------------
+*.lnk
+*.stackdump
