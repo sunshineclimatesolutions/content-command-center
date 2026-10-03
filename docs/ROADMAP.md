@@ -1,60 +1,106 @@
 # Roadmap — Content Command Center
 
-**Status:** Stage 0 complete upon commit/push; Stage 1 not authorized. Never auto-run
-the roadmap. Each stage ends with an owner review gate.
+**Status:** Stage 0.5 corrective documentation pass in review; Stage 1A not authorized.
+Never auto-run the roadmap. Each stage ends with an owner review gate.
+
+CURRENT-STAGE: 0.5
 
 ---
 
-## Stage 0 — Documentation constitution, private repo, research (THIS STAGE)
+## Stage 0 — Documentation constitution, repository, research (COMPLETE)
 
 **Authorized:** 2026-10-03 directive. **Executed:** repository creation, documentation,
-verification, commit, push, evidence.
+verification, commit, push, evidence. Commits `185b4ea`, `4dfc032` on `main`.
 
 - Deliverables: `README.md`, `AGENTS.md`, all `docs/*` specifications, `.gitignore`,
   `LICENSE_DECISION.md`, `scripts/verify_docs.py`, review checklist.
-- Excluded: application code, dependency installation, account connections, live posts,
-  any existing-repo change, any spending.
-- Pass criteria: new private repo owned by the CLI-authenticated account; docs exist,
-  links resolve, requirement IDs map, sources dated, honest status; staged-file secret
-  scan clean; local HEAD == remote `main` SHA; existing repos untouched.
-- Gate: **owner architectural review before Stage 1.**
+- Historical note: the repository was created **private** and was deliberately made
+  **public** by the owner afterwards (ADR-017). Public visibility grants no license.
+- Pass criteria: new repo owned by the CLI-authenticated account; docs exist, links
+  resolve, requirement IDs map, sources dated, honest status; staged-file secret scan
+  clean; local HEAD == remote `main` SHA; existing repos untouched.
+- Gate: owner/architect review before further work.
 
-## Stage 1 — Local media proof
+## Stage 0.5 — Corrective documentation pass (THIS STAGE)
 
-**Goal:** prove safe, honest, resumable local ingest and a real library using real media
-the owner selects.
+**Authorized:** 2026-10-03 corrective directive on branch
+`feature/stage-0p5-architecture-corrections` (draft PR, not merged).
 
-**Scope:** start/stop a local app; user-selectable watched folder; completed-file
-detection (unchanged size+mtime across ≥2 scans, configured window, FFprobe validation,
-Windows lock retry); SHA-256; transaction-safe imports; non-recursive watch; original
-preservation; FFprobe metadata (resolution, duration, fps, codec, color transfer, audio,
-rotation); thumbnail generation; SQLite persistence; searchable library; drag-and-drop/
-manual import; persistent job and error states; clean restart/relink.
+- Corrections: public-repo redactions and licensing clarity; verified-copy-only
+  ingestion (hard links removed); local API browser-threat controls; authoritative
+  concept-asset relationship plus dedup/republish semantics; Stage 1A/1B split; Python
+  3.14 dependency validation; FFmpeg acquisition/checksum plan; SCS reference update to
+  `87da9a2`; no lead-attribution duplication; stronger documentation verifier.
+- Excluded: application code, software installation, account connections, live posts,
+  any spending.
+- Pass criteria: verifier passes with strengthened mapping/status checks; staged-file
+  security review clean; branch pushed and draft PR opened; `main` untouched.
+- Gate: owner review of the draft PR before any Stage 1A work.
 
-**Explicitly excluded:** publishing, composer, campaign import, any account connection,
-any AI tool, any cloud call, any Resolve scripting.
+## Stage 1A — Ingest core (headless proof)
 
-**Dependencies:** owner choice of workspace root; free FFmpeg/ffprobe build installed
-with approval; ADR selecting the stack/process model.
+**Goal:** prove safe, honest, resumable local ingest of real owner media without UI
+polish, publishing, or marketing integration.
 
-**Fixtures:** synthetic short videos (small), plus owner-selected real exports; a
-corrupted file, a duplicate, a locked/in-use file, a Unicode-path file, a large file
-(cap-tested), an HDR/rotated sample if available, an interrupted copy. No customer
-media as repository fixtures.
+**Scope:** app start/stop; one user-selected watched folder; standard-library polling
+scanner; quiet-period detection; FFprobe validation; Windows lock retry; **verified
+copy** (no hard links); source-unchanged-during-copy check; destination SHA-256
+verification; resume/recovery; minimal SQLite schema + migrations (`workspace`,
+`folder_watch`, `asset`, `ingest_run`); content-hash dedup identity; manual import entry
+point; persistent job/error states; local logs free of secrets and PII.
+
+**Explicitly excluded:** composer, publishing, campaign import, thumbnails/search UI,
+concept grouping UI, drag-and-drop, any account connection, any AI tool, any cloud call,
+Resolve scripting.
+
+**Dependencies:** owner choice of workspace root; owner-authorized download of the
+pinned FFmpeg LGPL shared build with checksum verification (`docs/ENVIRONMENT.md` §3);
+stack ADR (ADR-005) resolved.
+
+**Fixtures:** generated at test time (FFmpeg `lavfi` or programmatic minimal bytes) into
+ignored temp paths — **no committed binary media and no customer footage**. Cases:
+valid small clip; half-written file; corrupted file; duplicate pair; locked/in-use file;
+Unicode and long paths; nested/junction path; oversized file (cap logic); low-disk
+simulation; **pause-and-resume writer** (writer stops long enough to appear finished,
+then resumes), with and without a completion sentinel.
 
 **Pass criteria (testable):**
-1. A file still being written is not imported until stable; a half-written MP4 fails
-   validation without DB or filesystem damage.
-2. After ingest, source file hash and mtime are unchanged and the file still exists.
-3. Duplicate import creates no second asset row; interrupted ingest resumes or restarts
-   without partial rows.
-4. App restart preserves library state and supports relinking a moved folder.
-5. Unicode paths, long paths, and a locked file are handled with visible outcomes.
-6. Low-disk preflight blocks ingest below threshold with a clear message.
-7. No network egress occurs during ingest (verified by inspection/monitoring).
-8. Tests report actual counts; failures are not skipped.
+1. A file still being written is not imported until stable across the quiet period; a
+   half-written MP4 fails validation without DB or filesystem damage.
+2. After import, source hash and mtime are unchanged and the file still exists; no hard
+   link was created.
+3. Destination SHA-256 matches the source hash computed during copy; a simulated
+   mid-copy source change aborts the import and leaves no library row.
+4. Duplicate import links/reuses the existing asset; interrupted import resumes or
+   restarts from a verified checkpoint without partial rows.
+5. The pause-and-resume fixture does not produce a false "complete" library entry when a
+   sentinel is present; without a sentinel the known limitation is documented and
+   recovery can remove the incomplete copy and re-import.
+6. Unicode paths, long paths, and a locked file produce visible, clean outcomes.
+7. Low-disk preflight blocks the copy below threshold with a clear message.
+8. Local API endpoints reject forged `Host`, foreign `Origin`, and missing CSRF tokens;
+   no endpoint can read outside authorized roots.
+9. No network egress occurs during ingest (inspection/monitoring evidence).
+10. Tests report actual counts; failures are not skipped.
 
-**Gate:** owner reviews Stage 1 evidence and explicitly approves Stage 2.
+**Gate:** owner reviews Stage 1A evidence and explicitly approves Stage 1B.
+
+## Stage 1B — Library surface
+
+**Goal:** make the proven ingest core usable.
+
+**Scope:** thumbnail generation and display; search/filter; concept creation and
+`concept_asset` linking; drag-and-drop/manual import UI; relink after folder move; clean
+restart persistence; read-only status honesty in the UI; time-entry capture groundwork
+(CCC-REQ-010).
+
+**Explicitly excluded:** publishing, campaign import, calendar, API connections.
+
+**Pass criteria:** every displayed counter/status maps to DB state (CCC-REQ-031);
+grouping uses only `concept_asset`; relink restores access without duplicating assets;
+restart preserves state; tests report actual results.
+
+**Gate:** owner review before Stage 2.
 
 ## Stage 2 — Production package
 

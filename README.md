@@ -9,10 +9,18 @@ honest publication status, and free native-scheduler or clean manual handoffs �
 optional official-API adapters added only after they are approved, free, and proven
 end-to-end.
 
-> **CURRENT STATUS: Stage 0 documentation only.** There is no application code in this
-> repository. Nothing installs, runs, publishes, or connects to any account. Every
-> planned command in these documents is marked **PLANNED**. See
-> [Current status](#current-status) and [docs/ROADMAP.md](docs/ROADMAP.md).
+> **CURRENT STATUS: Stage 0.5 — corrective documentation pass on
+> `feature/stage-0p5-architecture-corrections` (draft PR, not merged).** There is no
+> application code in this repository. Nothing installs, runs, publishes, or connects to
+> any account. Every planned command in these documents is marked **PLANNED**. See
+> [Current status](#10-current-status) and [docs/ROADMAP.md](docs/ROADMAP.md).
+>
+> CURRENT-STAGE: 0.5
+>
+> **Repository visibility:** this repository was created **private** on 2026-10-03 and
+> was deliberately made **public** by the owner afterwards. Public visibility is **not**
+> a license: no permission to copy, reuse, or redistribute this code or documentation
+> is granted (see [LICENSE_DECISION.md](LICENSE_DECISION.md)).
 
 ---
 
@@ -40,8 +48,11 @@ promise** (see [docs/PRODUCT_CHARTER.md](docs/PRODUCT_CHARTER.md)).
 4. **Export to a watched Resolve folder** — CCC detects completed exports only after
    file stability, FFprobe validation, and Windows-lock retries; originals are never
    modified or deleted.
-5. **Ingest safely into the local library** — SHA-256, duplicate detection, metadata,
-   thumbnail, and a recoverable database transaction. Interrupted ingests resume.
+5. **Ingest safely with verified copying** — quiet-period stability detection, FFprobe
+   validation, source-unchanged-during-copy verification, destination SHA-256
+   verification, deduplication by content identity, metadata, thumbnail, and a
+   recoverable database transaction. Interrupted ingests resume. Hard links are not
+   used.
 6. **Group assets into a content concept** — master, shorts, stills, subtitle files,
    project reference, captions, and proof live under one stable concept ID.
 7. **Compose platform variants** — one master description, independently editable
@@ -118,7 +129,8 @@ when commercially relevant. CCC must never manufacture filler to hit a quota.
                     │  render/export
                     ▼
         WATCHED RESOLVE EXPORT FOLDER
-                    │  stability → FFprobe → SHA-256 → thumbnail
+                    │  quiet period → FFprobe → verified copy → destination SHA-256
+                    │  source-unchanged check → thumbnail
                     ▼
    CONTENT COMMAND CENTER  [http://127.0.0.1 — local only]
    ├── FastAPI backend + SQLite + background jobs (PLANNED)
@@ -149,16 +161,17 @@ Nothing below is implemented or installed by this repository.
 
 | Layer | Proposal | Status |
 |---|---|---|
-| Backend | Python 3.11+ **FastAPI** bound to `127.0.0.1`, background workers | PROPOSED / ADR REQUIRED. Local machine currently has Python **3.14.7**; exact version compatibility must be verified in Stage 1. |
+| Backend | Python 3.11+ **FastAPI** bound to `127.0.0.1`, background workers | PROPOSED / ADR REQUIRED. Python **3.14.7** is installed; proposed dependencies validated for 3.14 (metadata + cp314 wheels, 2026-10-03) — see [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md) |
+| Local API security | Host/Origin allowlist, no cross-origin CORS by default, CSRF token for state-changing calls, ID-based file access confined to authorized roots | REQUIRED BY DESIGN (see [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md)) |
 | Database | **SQLite** (single file, WAL, migrations) | PROPOSED / ADR REQUIRED |
-| File watching | `watchdog` + stability/lock/FFprobe checks | PROPOSED / ADR REQUIRED |
-| Media probing/thumbnails | **FFmpeg / ffprobe CLI** (LGPL/GPL — see license notes) | PROPOSED / ADR REQUIRED. **Not currently detected on PATH**; Stage 1 must resolve with a free build after owner approval. |
+| File watching | Standard-library polling scanner; `watchdog` deferred (no CPython 3.14 Windows wheel at check time) | PROPOSED / ADR REQUIRED (ADR-023) |
+| Media probing/thumbnails | **FFmpeg / ffprobe CLI** (LGPL shared build preferred) | PROPOSED / ADR REQUIRED. Not detected on PATH; acquisition, license, and checksum procedure in [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md), installation gated on owner approval |
 | Frontend | React + Vite + TypeScript, desktop-optimized UI | PROPOSED / ADR REQUIRED |
 | Editor | Existing **DaVinci Resolve** 19.0.0.69 (`Resolve.exe`) | Present on machine; Studio activation owner-confirmed, not independently verified |
 | Packaging | Plain local process first; optional Tauri later | PROPOSED / ADR REQUIRED |
 
 A materially simpler alternative (for example a single-process local app with minimal
-frontend tooling) must be considered in `docs/ARCHITECTURE.md` and the Stage 1 ADR
+frontend tooling) must be considered in `docs/ARCHITECTURE.md` and the Stage 1A ADR
 before implementation. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and
 [docs/DECISION_LOG.md](docs/DECISION_LOG.md).
 
@@ -167,8 +180,9 @@ before implementation. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and
 | Stage | Scope | Gate |
 |---|---|---|
 | **Stage 0** | This documentation constitution, private repo, evidence | **CURRENT — stopped for architectural review** |
-| Stage 1 | Local media proof: watched folder, safe ingest, SHA-256, SQLite library, import/relink | Owner approves Stage 1 scope after reviewing Stage 0 |
-| Stage 2 | Production package: concepts, read-only SCS link/calendar snapshot, composer, approval, four-week calendar, native handoff packages | Owner review of Stage 1 evidence |
+| **Stage 1A** | Ingest core (headless): quiet-period detection, verified copy, FFprobe, SHA-256, SQLite, recovery, synthetic-media tests | Owner approves 1A plan + free FFmpeg install after reviewing Stage 0.5 |
+| **Stage 1B** | Library surface: thumbnails, search, concept grouping, manual import, relink, restart persistence | Owner reviews Stage 1A evidence |
+| Stage 2 | Production package: concepts, read-only SCS link/calendar snapshot, composer, approval, four-week calendar, native handoff packages | Owner review of Stage 1B evidence |
 | Stage 3 | Edit-time reduction benchmark: Resolve-native workflow vs one OSS rough-cut and one optional local clipper on safe sample content | Measured benefit required before adoption |
 | Stage 4 | Native batching and reliability: reminders, queue, missed-post handling, status reconciliation, backup/restore drill | Owner review |
 | Stage 5 | **Optional** verified auto-publication: self-hosted Postiz vs TryPost spike, then separately approved official API integrations | Separate explicit permission required |
@@ -184,6 +198,7 @@ Never auto-run the roadmap. Full details: [docs/ROADMAP.md](docs/ROADMAP.md).
 | [docs/PRODUCT_CHARTER.md](docs/PRODUCT_CHARTER.md) | Vision, priorities, requirement IDs, acceptance mapping |
 | [docs/USER_WORKFLOWS.md](docs/USER_WORKFLOWS.md) | Exact user journeys, naming, folder layout, recovery |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components, processes, boundaries, publisher adapter contract |
+| [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md) | Minimal environment record, Python dependency validation, FFmpeg acquisition plan |
 | [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | Entities, relationships, lifecycles, migrations, backups |
 | [docs/OPEN_SOURCE_EVALUATION.md](docs/OPEN_SOURCE_EVALUATION.md) | Dated OSS research with licenses and fit |
 | [docs/PLATFORM_CAPABILITIES.md](docs/PLATFORM_CAPABILITIES.md) | Per-destination API/scheduler feasibility matrix |
@@ -208,12 +223,18 @@ unapproved API.
 
 ## 10. Current status
 
-- **Stage 0 — complete upon commit/push:** repository constitution documents, research
-  ledger, and a zero-dependency documentation verifier.
-- **Application code:** none. Implementation begins no earlier than an approved Stage 1.
+- **Stage 0:** complete (commits `185b4ea`, `4dfc032`) — repository constitution,
+  research ledger, zero-dependency documentation verifier.
+- **Stage 0.5:** corrective pass in review on `feature/stage-0p5-architecture-corrections`
+  — public-repository redactions and licensing clarity, verified-copy-only ingestion,
+  local API browser-threat controls, data-model clarification, Stage 1A/1B boundaries,
+  and the SCS reference update.
+- **Application code:** none. Implementation begins no earlier than an approved Stage 1A.
 - **External connections:** none. No social account is connected; no credential is
   stored; no post has been published.
 - **Costs incurred:** $0 new spending by this project.
-- **Known environment gaps:** FFmpeg/ffprobe not detected; Python 3.14.7 (proposal
-  targets 3.11+); Resolve Studio activation owner-confirmed only; no D: drive exists
-  on this machine (paths in examples are illustrative and configurable).
+- **Known environment gaps:** FFmpeg/ffprobe not detected (acquisition plan in
+  [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md), owner approval required); `watchdog`
+  deferred (no CPython 3.14 Windows wheel); Resolve Studio activation owner-confirmed
+  only; no `D:` drive exists (example paths are illustrative and configurable); backup
+  3-2-1 gap unresolved.

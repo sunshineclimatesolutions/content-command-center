@@ -9,8 +9,12 @@ Status vocabulary: **VERIFIED DOCS** (official source fetched/cited this session
 account with evidence — none yet) · **BLOCKED** · **MANUAL** · **UNKNOWN**.
 
 > **No destination below is connected or tested for the SCS accounts.** Capability is not
-> account eligibility. SCS account facts come from the SCS Platform Status Register at
-> commit `0a38fec0e604dc201df931c50eb980d432a768b2` (see `docs/SOURCE_EVIDENCE.md`).
+> account eligibility. SCS account facts were captured at commit
+> `0a38fec0e604dc201df931c50eb980d432a768b2` for Stage 0 and remain valid; the SCS
+> default branch has since advanced to `87da9a2887189552c8872339738f526d3132f883`
+> (consent-gated first/latest-touch lead-attribution work; the Platform Status Register
+> itself is unchanged). CCC must not duplicate SCS lead capture or campaign attribution
+> (CCC-REQ-036). See `docs/SOURCE_EVIDENCE.md` §2/§2a.
 
 ---
 
@@ -71,6 +75,9 @@ account with evidence — none yet) · **BLOCKED** · **MANUAL** · **UNKNOWN**.
   produces a verified public URL without duplicates.
 - **Never:** paid API fallback, account-password automation, scraping, CAPTCHA/rate-limit
   bypass, or treating provider acceptance as public confirmation.
+- **Not CCC's job:** lead capture, consent storage, and first/latest-touch campaign
+  attribution stay in the existing SCS website systems (CCC-REQ-036); CCC imports only
+  approved campaign links and records publication proof.
 
 ## 4. Required per-destination UI honesty
 

@@ -71,21 +71,35 @@ approved link for that campaign/placement.
    `%CC_ROOT%\SCS\00_INBOX\RESOLVE_EXPORTS\`. This is a **landing zone**, not the
    archive.
 
-## 5. Watched-folder ingestion (PLANNED)
+## 5. Watched-folder ingestion (PLANNED, Stage 1A)
 
 1. Owner renders into the watched folder (Resolve may remain open or be closed later).
-2. CCC detects a new file; it is not processed until:
-   - size and mtime are unchanged across at least two scans separated by a safe window;
+2. A standard-library polling scanner (no `watchdog` dependency; see
+   [docs/ENVIRONMENT.md](ENVIRONMENT.md)) detects a new file. It is not imported until
+   all of these hold:
+   - size and mtime are unchanged across the full configurable **quiet period**;
    - `ffprobe` parses it successfully;
-   - an open/read retry succeeds after any Windows sharing violation.
-3. On success, CCC copies (or hard-links on the same volume by explicit configuration)
-   into the library, computes SHA-256, extracts metadata, generates a thumbnail, and
-   writes one recoverable database transaction.
-4. Duplicates are detected by content hash + logical version; no duplicate library entry
-   is created.
-5. The original export in the landing zone is **never deleted or modified** by CCC.
-6. Interrupted ingests resume or safely restart; failures are visible with error state
-   and retry.
+   - open/read retries succeed after any Windows sharing violation.
+3. **Verified copy only** (no hard links): CCC copies the source into a library staging
+   path, then:
+   - re-checks that the source size/mtime did not change while copying;
+   - computes the destination SHA-256 and verifies it equals the source hash computed
+     during the copy;
+   - extracts metadata and generates a thumbnail;
+   - commits one recoverable database transaction (asset + ingest run).
+4. Duplicates are detected by content hash; an existing asset is linked rather than
+   re-imported. Deduplication never blocks publishing the same approved material to
+   other destinations or at other times (see [docs/DATA_MODEL.md](DATA_MODEL.md) §7).
+5. The original export in the landing zone is **never deleted, moved, or modified** by
+   CCC.
+6. Interrupted copy/import operations resume or restart from a verified checkpoint;
+   incomplete staging output is removed only after being proven unusable, and failures
+   are visible with error state and retry.
+7. **Known limitation:** a writer that pauses longer than the quiet period can appear
+   finished. For producers that can emit one, an optional explicit completion signal (a
+   sentinel/sidecar file such as `<name>.ccc-ready`) is treated as the authoritative
+   completion marker. Filesystem stability alone remains a heuristic; a watcher event is
+   never treated as completion.
 
 ## 6. Concept grouping (PLANNED)
 
@@ -139,6 +153,11 @@ approved link for that campaign/placement.
    upstream SHA changes.
 5. CCC never edits, generates, or deploys SCS website content, and never invents UTM
    parameters.
+6. CCC never captures or stores lead attribution. SCS commit
+   `87da9a2887189552c8872339738f526d3132f883` introduced consent-gated first/latest-touch
+   campaign attribution in lead emails on the website. That system is authoritative;
+   CCC must not reproduce it, read its records, or write attribution fields (see
+   [docs/SOURCE_EVIDENCE.md](SOURCE_EVIDENCE.md) §2a).
 
 ## 10. Publication verification workflow (PLANNED)
 
@@ -166,6 +185,7 @@ as publicly published.
 | Token expired/invalid (later stages) | Mark connection `connection_failed`; never retry blindly or publish |
 | Publication failed | Per-destination failure state with reason; retry only when idempotent/safe |
 | Wrong account selected | Workflow requires explicit account confirmation per workspace; isolation enforced |
+| Writer pauses long enough to look finished | Sentinel signal (if the producer emits one) wins; otherwise the quiet-period heuristic may import early — recovery removes the incomplete copy and re-imports on owner request |
 
 ## 12. Local folder structure (configurable example)
 

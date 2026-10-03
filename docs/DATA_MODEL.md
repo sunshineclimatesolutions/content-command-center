@@ -1,7 +1,7 @@
 # Data Model — Content Command Center
 
 **Status:** Stage 0 design (unimplemented). Table and field names are provisional and
-will be fixed by the Stage 1/2 migrations. SQLite is the authoritative store; the
+will be fixed by the Stage 1A/2 migrations. SQLite is the authoritative store; the
 filesystem holds media.
 
 ---
@@ -66,21 +66,28 @@ offered as approved.
 (`idea|scripted|filmed|edited|imported|ready_for_review|approved|scheduled|published|archived`),
 `risk_flags_json`, `notes`, timestamps.
 
-### concept_asset (join)
-`concept_id`, `asset_id`, `role` (`master|short|still|thumbnail|project_ref|subtitle|other`),
-`sort_order`.
+### concept_asset (authoritative grouping relationship)
+Many-to-many link between concepts and assets; this is the **only** authoritative
+grouping model. `concept_id`, `asset_id`, `role`
+(`master|short|still|thumbnail|project_ref|subtitle|other`), `sort_order`,
+`reuse_note`, `linked_at`, unique on (`concept_id`, `asset_id`, `role`). Linking an
+existing asset into a second concept is intentional reuse, not duplication.
 
 ### asset
-`id`, `workspace_id`, `concept_id` (optional until grouped), `kind`
-(`video|audio|image|subtitle|project|document`), `path`, `display_name`,
-`file_size`, `sha256`, `mime`, `duration_ms`, `width`, `height`, `fps`, `rotation`,
-`color_transfer`, `audio_streams_json`, `probe_json`, `thumbnail_path`, `source`
-(`watched|manual|import`), `imported_at`, `archived_at`, `original_preserved` (always
-true for ingest), `logical_version`.
+One physical media file, workspace-scoped, immutable after successful import. `id`,
+`workspace_id`, `kind` (`video|audio|image|subtitle|project|document`), `path`,
+`display_name`, `file_size`, `sha256`, `mime`, `duration_ms`, `width`, `height`, `fps`,
+`rotation`, `color_transfer`, `audio_streams_json`, `probe_json`, `thumbnail_path`,
+`source` (`watched|manual|import`), `imported_at`, `archived_at`,
+`original_preserved` (always true for ingest), `logical_version`.
+**There is deliberately no `concept_id` on `asset`** — grouping is exclusively through
+`concept_asset` (see §7).
 
 ### asset_variant
-`id`, `asset_id`, `variant_type` (`master_16x9|short_9x16|square|thumbnail|caption_file|other`),
-`label`, `path`, `sha256`, `notes`, `approved_at/null`.
+A derivative rendering of exactly one asset (lineage, not reuse). `id`,
+`derived_from_asset_id` (FK to `asset`), `variant_type`
+(`master_16x9|short_9x16|square|thumbnail|caption_file|other`), `label`, `path`,
+`sha256`, `notes`, `approved_at/null`.
 
 ### transcript / subtitle
 `transcript`: `id`, `asset_id`, `engine` (Resolve or local tool), `language`,
@@ -100,7 +107,9 @@ true for ingest), `logical_version`.
 ### publication_draft
 `id`, `concept_id`, `destination_account_id`, `asset_variant_id`, `caption_variant_id`,
 `mode` (`native_handoff|manual|api_public`), `scheduled_for_utc`, `timezone`,
-`state` (see §4), `created_at`, `updated_at`.
+`state` (see §4), `created_at`, `updated_at`. Multiple drafts may exist for the same
+variant and destination at different times; the app warns only on an overlapping-window
+duplicate and requires explicit confirmation (§7).
 
 ### publication_job
 `id`, `publication_draft_id`, `idempotency_key`, `attempt`, `next_attempt_at`,
@@ -121,9 +130,12 @@ true for ingest), `logical_version`.
 
 ### folder_watch / ingest_run
 `folder_watch`: `id`, `workspace_id`, `path`, `recursive` (default false), `enabled`,
-`stability_seconds`, `created_at`.
+`quiet_period_seconds`, `completion_signal_pattern` (optional sentinel such as
+`*.ccc-ready`), `created_at`.
 `ingest_run`: `id`, `folder_watch_id`, `source_path`, `state`, `started_at`,
-`finished_at`, `bytes`, `sha256`, `error`, `resumed_from`.
+`finished_at`, `bytes`, `source_sha256_at_start`, `source_unchanged_verified`,
+`destination_path`, `destination_sha256_verified`, `stability_scans`, `error`,
+`resumed_from`.
 
 ### backup_run
 `id`, `workspace_id`, `db_backup_path`, `manifest_path`, `started_at`, `finished_at`,
@@ -166,7 +178,24 @@ DRAFT → PREPARED → APPROVED → EXPORTED
   `backup_run`; restore drill in Stage 4.
 - No runtime database or private media in git; `.gitignore` enforces this.
 
-## 6. Future credential storage
+## 7. Identity, variants, and reuse (authoritative relationship model)
+
+- `asset` = one physical file, identified within a workspace by content SHA-256. The
+  ingest dedup key is `(workspace_id, sha256)`.
+- `asset_variant` = a derivative of an asset (crop/re-encode/thumbnail), with its own
+  hash and an explicit lineage to `asset`.
+- `concept_asset` = intentional linking/reuse of an asset inside a concept. An asset may
+  belong to many concepts; a concept may contain many assets. This join table is the
+  single authoritative grouping relationship (there is no `asset.concept_id`).
+- `publication_draft` = one intended publication of one variant to one destination at
+  one time. The same variant may have many drafts to different destinations, dates, or
+  repeat campaigns — legitimate reuse.
+- Deduplication may only warn when two drafts target the same destination with the same
+  variant inside an overlapping window; the owner can confirm and proceed. Dedup must
+  never silently suppress a legitimate publication, and no cached "published" counter
+  exists outside these tables (§3).
+
+## 8. Future credential storage
 
 Tokens are never stored in SQLite in plaintext. Proposed: DPAPI-protected blob or
 Windows Credential Manager, referenced by opaque key; key names only in the DB.

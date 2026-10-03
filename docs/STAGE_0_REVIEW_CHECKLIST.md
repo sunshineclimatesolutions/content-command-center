@@ -48,8 +48,38 @@ Adapted from the owner-supplied review checklist. Use it after Stage 0 is submit
 - [ ] Feature claims and subscription/API restrictions are dated and attributed; Postiz
       and alternatives are **not** presumed account-tested.
 - [ ] Planned stacks are flagged as decisions/proposals, not implemented features.
-- [ ] Stage 1 scope is narrow and has concrete file-integrity tests (unfinished files,
+- [ ] Stage 1A/1B scope is narrow and has concrete file-integrity tests (unfinished files,
       locks, duplicates, failure/restart, large and Unicode media, storage capacity).
+
+## Stage 0.5 corrective pass
+
+- [ ] Repository visibility is **public** and the docs state the owner changed it
+      deliberately; the original private creation is preserved as history (ADR-017).
+- [ ] Redaction audit: no personal email, inactive account names, or unnecessary
+      machine identifiers in committed docs; the residual commit-author email in Git
+      history is disclosed, not hidden.
+- [ ] Licensing clarity: public visibility is explicitly not a reuse license
+      (`LICENSE_DECISION.md`).
+- [ ] `main` protection recommendation documented (PR required, force-push blocked,
+      deletion blocked, 0 approvals, no mandatory external reviewers) and **not applied**
+      without owner approval (ADR-018).
+- [ ] Verified-copy-only ingestion: no hard-link option remains in
+      AGENTS/ARCHITECTURE/DATA_MODEL/ROADMAP; source-unchanged and destination-checksum
+      requirements are present.
+- [ ] Pause-and-resume test case and completion-sentinel limitation documented.
+- [ ] Local API browser-threat controls (Host/Origin/CORS/CSRF) and path-confinement
+      requirements map to CCC-REQ-037/038 with Stage 1A tests.
+- [ ] `concept_asset` is the single authoritative grouping relationship; dedup cannot
+      suppress legitimate cross-destination/time publication (DATA_MODEL §7).
+- [ ] Stage 1A/1B scopes finalized with exclusions and pass criteria; nothing implemented.
+- [ ] Python 3.14 dependency validation recorded; watchdog deferral documented.
+- [ ] FFmpeg distribution/checksum/license procedure documented; installation still
+      gated on owner authorization.
+- [ ] SCS reference acknowledges `87da9a2` while preserving the Stage 0 snapshot; no
+      lead-attribution duplication (CCC-REQ-036).
+- [ ] `scripts/verify_docs.py` checks requirement mapping, status markers, docs
+      inventory, and anchors; all checks pass.
+- [ ] Draft PR opened from `feature/stage-0p5-architecture-corrections`; not merged.
 
 ## Gate decision
 
@@ -58,5 +88,5 @@ Adapted from the owner-supplied review checklist. Use it after Stage 0 is submit
 - [ ] GitHub remote accessible for independent review. If the reviewer connector uses
       another account, grant it access before calling the repo verified.
 - [ ] The exact commit under review is recorded (local SHA == remote SHA).
-- [ ] **No implementation authorized yet.** Stage 1 begins only after repository and
+- [ ] **No implementation authorized yet.** Stage 1A begins only after repository and
       architecture audit.
