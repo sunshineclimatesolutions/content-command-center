@@ -40,22 +40,21 @@ wear, and owner labor are real existing costs and are never described as free.
 5. No silent trial signup, auto-billing "free credits", or usage-billed endpoint may be
    reachable from CCC code.
 
-## 4. Resource inventory (as measured 2026-10-03)
+## 4. Resource inventory (verified 2026-10-03, identifiers minimized)
 
-| Resource | Observed value | Notes |
+This repository is public, so only capability classes are recorded here. Detailed
+dependency validation lives in [docs/ENVIRONMENT.md](ENVIRONMENT.md).
+
+| Resource | Capability observed | Notes |
 |---|---|---|
-| OS | Windows 11 Home 10.0.26200 (64-bit) | Windows-first target confirmed |
-| CPU | AMD Ryzen 7 7735HS, 8 cores / 16 threads | Resolve and local FFmpeg work feasible |
-| RAM | 15.2 GB | Adequate for Resolve + local tools; not unlimited |
-| GPU | NVIDIA GeForce RTX 4050 Laptop + AMD Radeon iGPU | Resolve acceleration available |
-| System disk | `C:` ~633.4 GB free of ~952 GB | Primary candidate for library + DB |
-| Other volume | `G:` ~601.7 GB free | Appears to be a **cloud-sync drive** (visible `My Drive`/`Shared drives` folders) — **not counted as local durable storage** |
-| Git | 2.55.0.windows.3 | Free, present |
-| GitHub CLI | 2.97.0 | Authenticated as `sunshineclimatesolutions` |
-| Node | v24.19.0 (npm 11.17.0) | Frontend tooling available |
-| Python | 3.14.7 (`python`, `py`) | Proposal targets 3.11+; compatibility check required |
-| FFmpeg/ffprobe | **Not detected on PATH** | Stage 1 dependency gap; free install + license review required with owner approval |
-| DaVinci Resolve | `C:\Program Files\Blackmagic Design\DaVinci Resolve\Resolve.exe` v19.0.0.69; `blackmagic.lic` present (contents not inspected) | Studio activation owner-confirmed, not independently verified |
+| OS | Windows 11 Home, 64-bit, current supported build | Windows-first target confirmed |
+| CPU | 8-core / 16-thread AMD Ryzen 7 (7000 series) | Resolve and local FFmpeg work feasible |
+| RAM | ~16 GB | Adequate for Resolve + local tools; not unlimited |
+| GPU | NVIDIA RTX 4050-class laptop GPU + integrated graphics | Resolve acceleration available |
+| Local storage | System volume with >500 GB free; a second volume is a cloud-sync mount | Adequate for Stage 1A; the cloud mount is **not** counted as durable local storage |
+| Tooling | Git 2.55, GitHub CLI 2.97 (authenticated), Node 24 / npm 11, Python 3.14.7 | Existing/free |
+| FFmpeg/ffprobe | **Not detected on PATH** | Acquisition, license, and checksum procedure in [docs/ENVIRONMENT.md](ENVIRONMENT.md) §3; owner authorization required |
+| DaVinci Resolve | Installed v19.0.0.69 at the standard install path; license file present (contents not inspected) | Studio activation owner-confirmed, not independently verified |
 
 ## 5. Capacity and backup gaps (not hidden)
 

@@ -1,6 +1,6 @@
 # Product Charter — Content Command Center
 
-**Status:** Stage 0 (documentation only) · **Owner:** Aaron Thomas · **Issued:** 2026-10-03
+**Status:** Stage 0.5 (corrective documentation pass) · **Owner:** Aaron Thomas · **Issued:** 2026-10-03
 
 This charter is the source of truth for what Content Command Center (CCC) is, what it
 must do, and how change is controlled. Implementation status is always tracked honestly
@@ -59,9 +59,9 @@ log. IDs are never renumbered; withdrawn requirements are marked withdrawn.
 
 | ID | Requirement |
 |---|---|
-| CCC-REQ-011 | Original media and Resolve exports are never modified, renamed, moved, or deleted by CCC. |
-| CCC-REQ-012 | Ingestion waits for stable files (size+mtime across scans), validates with FFprobe, retries Windows lock errors, and is resumable/transaction-safe. |
-| CCC-REQ-013 | SHA-256 content hashing and deduplication prevent duplicate imports and duplicate publication. |
+| CCC-REQ-011 | Original media and Resolve exports are never modified, renamed, moved, or deleted by CCC. Hard links are not used for ingestion. |
+| CCC-REQ-012 | Ingestion uses verified copying: a configurable quiet period (size+mtime unchanged across the full period), FFprobe validation, Windows-lock recovery, a source-unchanged-during-copy check, destination SHA-256 verification, and resumable/transaction-safe recovery. |
+| CCC-REQ-013 | SHA-256 content hashing and deduplication prevent duplicate library imports; deduplication never suppresses a legitimate publication to a different destination or time, which requires only a warning plus explicit confirmation. |
 | CCC-REQ-014 | Folder watching is non-recursive by default; paths are validated; symlink/junction traversal is refused. |
 | CCC-REQ-015 | Corrupted, huge, locked, HDR/rotated, and Unicode-path media fail cleanly with visible error states. |
 | CCC-REQ-016 | The app warns on low disk space and never silently risks data loss. |
@@ -93,7 +93,7 @@ log. IDs are never renumbered; withdrawn requirements are marked withdrawn.
 |---|---|
 | CCC-REQ-028 | Zero new spending: no paid service, subscription, trial, API, hosting, domain, hardware, or payment-method requirement. |
 | CCC-REQ-029 | Third-party licenses are inventoried with obligations (notably AGPL/GPL/LGPL) before code reuse or distribution. |
-| CCC-REQ-030 | The project's own license remains undecided until owner approval (`LICENSE_DECISION.md`). |
+| CCC-REQ-030 | The project's own license remains undecided until owner approval (`LICENSE_DECISION.md`); public repository visibility does not grant any reuse license. |
 
 ### Engineering integrity
 
@@ -104,6 +104,14 @@ log. IDs are never renumbered; withdrawn requirements are marked withdrawn.
 | CCC-REQ-033 | Every behavioral change has tests; failures are reported with real observed output. |
 | CCC-REQ-034 | Local scheduling limits are visible in the UI and docs (PC off ⇒ no local job runs). |
 | CCC-REQ-035 | Workspace isolation prevents cross-business media, campaign, and credential exposure. |
+
+### Local API and browser safety
+
+| ID | Requirement |
+|---|---|
+| CCC-REQ-036 | CCC does not duplicate SCS lead capture or campaign attribution. Leads, consent records, and first/latest-touch attribution remain in their existing SCS systems; CCC imports campaign links read-only and records only publication proof. |
+| CCC-REQ-037 | The local API validates `Host` against the loopback allowlist, validates `Origin`/`Referer` on state-changing calls, disables cross-origin CORS by default, and requires a per-session CSRF token for mutations. |
+| CCC-REQ-038 | API file access is ID-based and confined to authorized roots; no endpoint can read or manipulate arbitrary paths, UNC/device paths, or reparse points. |
 
 ## 5. Non-goals
 

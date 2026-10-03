@@ -12,20 +12,20 @@ rewrite of third-party content.
 
 | Fact | Command (summary) | Observed result |
 |---|---|---|
-| OS | `Win32_OperatingSystem` | Windows 11 Home 10.0.26200, 64-bit |
-| Shell | `$PSVersionTable` | PowerShell 5.1.26100.9444, Desktop edition |
+| OS | `Win32_OperatingSystem` | Windows 11 Home, 64-bit, current supported build (exact build identifier intentionally not published) |
+| Shell | `$PSVersionTable` | Windows PowerShell 5.1 (Desktop) |
 | Git | `git --version` | 2.55.0.windows.3 |
 | GitHub CLI | `gh --version` | 2.97.0 (2026-07-31) |
-| GitHub auth | `gh auth status`, `gh api user` | Active account `sunshineclimatesolutions` (user id 311078908); other logged-in accounts `defend-network`, `Sparkling-Standard-Cleaning-Co` are inactive; tokens redacted by `gh` |
+| GitHub auth | `gh auth status`, `gh api user` | Active account `sunshineclimatesolutions` (public repo owner). Two additional signed-in accounts exist but are inactive and are deliberately not named in this public repository; tokens redacted by `gh` |
 | Node/npm | `node --version`, `npm --version` | v24.19.0 / 11.17.0 |
 | Python | `python --version`, `py --version` | 3.14.7 (both); `python3` alias absent |
 | FFmpeg/ffprobe | `ffmpeg -version`, `Get-Command` | **Not found / not on PATH** |
-| DaVinci Resolve | Start Menu shortcut target + FileVersionInfo | `C:\Program Files\Blackmagic Design\DaVinci Resolve\Resolve.exe`, product version 19.0.0.69; registry entry "DaVinci Resolve" 19.0.00069; `Support\License\blackmagic.lic` present (contents deliberately not inspected); Studio activation is owner-stated and **not independently verified** |
-| Hardware | `Win32_Processor/ComputerSystem/VideoController` | Ryzen 7 7735HS (8C/16T), 15.2 GB RAM, RTX 4050 Laptop + Radeon iGPU |
-| Disks | `Get-PSDrive` | `C:` ~633.4 GB free; `G:` ~601.7 GB free and appears to be a Google-Drive-style cloud mount (`My Drive`/`Shared drives`) — not counted as local durable storage |
+| DaVinci Resolve | Start Menu shortcut target + FileVersionInfo | Standard Blackmagic install path, product version 19.0.0.69; a license file is present (contents deliberately not inspected); Studio activation is owner-stated and **not independently verified** |
+| Hardware | `Win32_Processor/ComputerSystem/VideoController` | 8-core/16-thread AMD Ryzen 7 7000-series; ~16 GB RAM; RTX 4050-class laptop GPU plus integrated graphics (exact identifiers intentionally not published) |
+| Disks | `Get-PSDrive` | System volume >500 GB free; second volume is a cloud-sync mount (`My Drive`/`Shared drives` folders observed) and is **not** counted as local durable storage |
 | Ancestor repo check | `git rev-parse --show-toplevel` in `C:\Websites` and the handoff folder | Neither is a git repository; project created as a separate folder |
-| Git identity | `git config --get user.name/user.email` | `Aaron` / `chairman@defend-network.org` (read only; not modified) |
-| GitHub branch rules | `gh api .../rulesets`, `.../branches/main/protection` | HTTP 403: "Upgrade to GitHub Pro or make this repository public to enable this feature." — no technical branch protection on this private repo under the active plan; procedural gates documented in ADR-016 |
+| Git identity | `git config --get user.name/user.email` | Name configured; the personal email is intentionally **not recorded** in this public repository. It remains visible in commit metadata history, which is not rewritten (ADR-017 residual) |
+| GitHub branch rules | `gh api .../rulesets`, `.../branches/main/protection` | Stage 0.5 (public repo): rulesets endpoint returns `[]` (HTTP 200) and protection returns 404 "Branch not protected" — protection **is available at $0**, not currently enabled; recommendation in ADR-018. Historical private-repo 403 evidence preserved in ADR-016 |
 
 ## 2. SCS repository sources (read-only)
 
@@ -49,6 +49,28 @@ stale at retrieval time). Files fetched via GitHub API
 | `docs/marketing/WHERE-TO-PASTE-UTM-LINKS.md` | `d03a2ab0629bb9f3ee673c04eabede1fc6a528b2` | 7085 | Owner placement sheet; pending link for LinkedIn |
 | `docs/marketing/SOCIAL-PROFILE-SETUP.md` | `942d0260f03c76895a6e28e46bf758d1e23d11e8` | 10194 | Brand block; profile copy; TikTok business verification owner-confirmed; LinkedIn Page pending eligibility rules |
 | `docs/GTM-GA4-SETUP.md` | `15d9de7aff70dbeac74aa25482d473c095e8ad46` | 23059 | Events list (`scs_call_click`, `scs_text_click`, `scs_request_click`, `scs_form_start`, `generate_lead`); do not duplicate analytics |
+
+## 2a. SCS reference update (Stage 0.5, 2026-10-03)
+
+The SCS default branch advanced from the Stage 0 snapshot
+`0a38fec0e604dc201df931c50eb980d432a768b2` to
+**`87da9a2887189552c8872339738f526d3132f883`** (committed 2026-10-03T19:07:08Z):
+*"feat: consent-gated first/latest-touch lead attribution (#2)"*.
+
+- The Stage 0 snapshot and blob SHAs in §2 are **preserved as historical evidence** and
+  were not rewritten.
+- Files changed between the two commits: `AGENTS.md` (rules),
+  `docs/marketing/CONTENT-OPERATING-SYSTEM.md` (§12 lead handling), and
+  `docs/GTM-GA4-SETUP.md` (attribution documentation). The other nine Stage 0 reference
+  files were byte-identical at retrieval.
+- New SCS behavior: service-request submissions carry **consent-gated first/latest-touch
+  campaign attribution inside lead emails** (lead records only; never analytics), gated
+  on analytics consent, 90-day retention, validated campaign tokens. This is
+  authoritative SCS functionality.
+- **CCC must not duplicate it** (CCC-REQ-036): no lead capture, no consent storage, no
+  attribution fields, and no reads of those records. CCC imports only approved campaign
+  links read-only and records publication proof.
+- Stage 2 freshness checks must compare against `87da9a2` or later.
 
 Secondary (not accessed this session; planning reference only):
 `Sparkling-Standard-Cleaning-Co/Sparkling-Standard-Cleaning` — deferred isolation
@@ -79,6 +101,8 @@ planning; no private access attempted; no facts asserted.
 | Mixpost Lite | https://github.com/inovector/mixpost (README) | fetched 2026-10-03 | MIT core; Lite is a feature-limited version of commercial Pro |
 | FFmpeg license | https://ffmpeg.org/legal.html | fetched 2026-10-03 | LGPL-2.1+ with optional GPL parts; no proprietary licensing; compliance checklist for linking/distribution |
 | OSS metadata | GitHub API `repos/{owner}/{repo}` | 2026-10-03 | Postiz 36,655★/AGPL/2026-10-03; TryPost 668★/AGPL/2026-10-03; Mixpost 3,770★/MIT/2026-03-16; AutoClip 161★/MIT/2026-08-01; Steezy-clipper 5★/MIT/2026-07-11; Auto-Editor 5,413★/Unlicense/2026-10-03; whisper.cpp 54,110★/MIT/2026-10-02; watchdog 7,423★/Apache-2.0/2026-09-22; LosslessCut 44,245★/GPL-2.0/2026-09-30; PySceneDetect 5,217★/BSD-3-Clause/2026-09-21; Ollama 182,100★/MIT/2026-10-03 |
+| Python 3.14 dependency validation | PyPI JSON API (`pypi.org/pypi/<pkg>/json`) | 2026-10-03 | FastAPI 0.142.2, Uvicorn 0.54.0, Pydantic 2.13.5 (+ cp314 `pydantic-core` 2.49.0), SQLAlchemy 2.1.3 (cp314 wheels), HTTPX 0.28.1, pytest 9.1.1, Alembic 1.20.0, python-multipart 0.0.32 compatible with CPython 3.14; **watchdog 6.0.0 lacks a cp314 Windows wheel → deferred** (ADR-023) |
+| FFmpeg build availability | GitHub API `repos/BtbN/FFmpeg-Builds/releases/latest` | 2026-10-03 | Release `latest` (published 2026-10-03) includes `checksums.sha256` and `ffmpeg-n9.0-latest-win64-lgpl-shared-9.0.zip` (73.6 MB) → chosen candidate (ADR-024); **no download performed** |
 
 ## 4. Verification honesty notes
 

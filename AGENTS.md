@@ -15,7 +15,8 @@ Before changing anything, every session must read:
 4. `docs/ARCHITECTURE.md`
 5. `docs/ROADMAP.md`
 6. `docs/ACCEPTANCE_TESTS.md`
-7. The current stage's plan/ADR and the files it names
+7. `docs/ENVIRONMENT.md`
+8. The current stage's plan/ADR and the files it names
 
 Read external sources only when the assigned task requires them, and only read-only.
 
@@ -48,6 +49,14 @@ silently pick one. Record resolved conflicts in `docs/DECISION_LOG.md`.
 - No production deployment, no public server, no tunnel exposing the app or media.
 - No accidental network use: no telemetry, no silent uploads, no cloud calls in core
   paths. Optional AI tools are local-only and candidate-output-only.
+- This repository is **public**: never commit secrets, credentials, personal contact
+  details, machine identifiers, private business data, or customer media. Public
+  visibility does not grant a license to anyone; the project remains unlicensed until
+  the owner decides (see `LICENSE_DECISION.md`).
+- Never implement or duplicate SCS lead capture or campaign attribution. CCC may import
+  approved campaign links read-only and record publication proof; leads, consent
+  records, first/latest-touch attribution, and GA4/GTM data stay in their existing SCS
+  systems.
 
 ## 4. Engineering conduct
 
@@ -84,18 +93,27 @@ silently pick one. Record resolved conflicts in `docs/DECISION_LOG.md`.
 ## 6. Media safety and immutability
 
 - Never delete, move, rename, or re-encode original media or Resolve exports.
-- Ingest is copy-based (or verified hard link on the same volume only when explicitly
-  configured); source files are left untouched.
-- Require all before ingestion: unchanged size+mtime across at least two scans separated
-  by a configurable window, successful `ffprobe` parse, and a successful open retry
-  after Windows sharing violations.
-- Compute SHA-256 and write the library record in one recoverable transaction; support
-  resume and content-hash deduplication.
+- **Verified copying only.** Hard links are not part of the implementation. After a
+  copy, the destination is checksum-verified (SHA-256) and the library record is
+  committed in one recoverable transaction; interrupted operations resume or safely
+  restart.
+- Require all before ingestion: unchanged size+mtime across the full configurable quiet
+  period; successful `ffprobe` parse; a successful open/read retry after Windows
+  sharing violations; and a post-copy check that the source did not change while
+  copying.
+- Filesystem quiet-period detection has a known limitation: a writer that pauses long
+  enough can look finished. Support an optional explicit render-completion signal (for
+  example a sentinel/sidecar file) for producers that can emit one, and never treat
+  event notifications alone as completion.
+- Deduplicate by content identity in the library, but never let dedup suppress a
+  legitimate publication: the same approved material may be published to different
+  destinations or at different times, with duplicate warnings only and explicit
+  confirmation required.
 - No recursive watching by default. No symlink/junction traversal. Validate every path.
 - Handle low disk space, unexpected formats, HDR/rotation/Unicode paths, and locked
   files with clean failure states — never by skipping silently.
-- Preserve source-truth provenance for every asset; never use runtime customer media as
-  a test fixture.
+- Preserve source-truth provenance for every asset; tests use generated synthetic media.
+  Never commit binary media or use runtime customer media as a fixture.
 
 ## 7. Sensitive content, rights, and claims
 
@@ -110,6 +128,13 @@ silently pick one. Record resolved conflicts in `docs/DECISION_LOG.md`.
 ## 8. Security defaults
 
 - Bind the application to `127.0.0.1` only. No remote login, no public media server.
+- Defend the local API against malicious browser requests: validate `Host` against the
+  loopback allowlist, validate `Origin`/`Referer` on state-changing calls, disable
+  cross-origin CORS by default, require a per-session CSRF token header on mutations,
+  and use `SameSite=Strict` if cookies are ever introduced.
+- File access is by catalog ID only; every path is canonicalized and confined to
+  configured roots. No endpoint may read or manipulate an arbitrary path, UNC/device
+  path, or reparse point.
 - Future secrets go to the Windows Credential Manager / DPAPI, never to files, git
   history, screenshots, logs, or reports.
 - Principle of least privilege for OAuth scopes and local processes.

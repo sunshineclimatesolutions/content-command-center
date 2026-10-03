@@ -16,8 +16,8 @@ reuse or distribution (`LICENSE_DECISION.md`).
 
 | Candidate | Source (checked 2026-10-03) | License | Maturity signal (stars / last push) | Prerequisites & resource notes | Windows friction | Verdict |
 |---|---|---|---|---|---|---|
-| **FFmpeg / ffprobe** | https://ffmpeg.org ; license page https://ffmpeg.org/legal.html | LGPL-2.1+ core; **GPL if GPL parts used** (e.g. libx264); no proprietary relicensing | 64,731 / 2026-10-03 (mirror) | CLI; CPU/RAM for decode/thumbnail work is modest at CCC scale; build matters for license | Official builds via third parties (gyan.dev, BtbN); PATH/config work; **not currently detected on this PC** | **Accept as core dependency candidate** after license review + owner-approved free install in Stage 1 |
-| **watchdog** | https://github.com/gorakhargosh/watchdog | Apache-2.0 | 7,423 / 2026-09-22 | Pure Python file-system events; low overhead; Windows ReadDirectoryChangesW backend | Minor: event flakiness on network drives; keep watching local volumes | **Accept** as watcher candidate (still require stability re-scans; never trust events alone) |
+| **FFmpeg / ffprobe** | https://ffmpeg.org ; license page https://ffmpeg.org/legal.html ; builds: BtbN/FFmpeg-Builds (GitHub releases) | LGPL-2.1+ core; **GPL if GPL parts used** (e.g. libx264); no proprietary relicensing | 64,731 / 2026-10-03 (mirror); BtbN `latest` release observed 2026-10-03 with `checksums.sha256` | CLI; probe/thumbnail work is modest at CCC scale; chosen **LGPL shared** build avoids GPL components | Download pinned zip, verify SHA-256, extract to app tools dir; no installer and no PATH change; **not currently installed** | **Accept as core dependency candidate**; acquisition/license/checksum procedure in [docs/ENVIRONMENT.md](ENVIRONMENT.md) §3; installation gated on owner authorization |
+| **watchdog** | https://github.com/gorakhargosh/watchdog | Apache-2.0 | 7,423 / 2026-09-22; PyPI 6.0.0 (2024-11-01) | Windows backend is a C extension; PyPI check found **no cp314 Windows wheel** for 6.0.0 | Building from source on Python 3.14 requires a C toolchain | **Deferred** (ADR-023). Stage 1A uses a standard-library polling scanner; revisit when cp314 wheels ship |
 | **whisper.cpp** | https://github.com/ggml-org/whisper.cpp | MIT | 54,110 / 2026-10-02 | Local CPU/GPU inference; model files are a separate large download; whisper models have their own license terms | Prebuilt Windows binaries exist; GPU acceleration depends on build | **Defer**: benchmark Resolve Studio's built-in transcription first (Stage 3); add only with measured benefit |
 | **Auto-Editor** | https://github.com/WyattBlue/auto-editor | Unlicense | 5,413 / 2026-10-03 | Removes silence; can export a Resolve timeline; CLI | Low; verify output semantics | **Optional Stage 3 candidate** for rough-cut assist after Resolve-native benchmark |
 | **AutoClip** | https://github.com/artbyjazi/autoclip | MIT | 161 / 2026-08-01 | Local Whisper + Ollama + auto-crop/captions; pre-1.0 per prior research (not re-verified here) | Requires local LLM runtime and models; quality unproven at scale | **Defer to Stage 3 experiment only**; candidate output never auto-approved |
@@ -75,3 +75,12 @@ schedulers.
 - No candidate in this document has been locally executed. Statuses are DOC CLAIM.
 - Any future adoption requires a Stage-scoped test with observed results recorded in
   `docs/SOURCE_EVIDENCE.md` and a decision entry in `docs/DECISION_LOG.md`.
+
+## 6. Python dependency validation (2026-10-03)
+
+Metadata validation against PyPI found the proposed runtime dependencies compatible with
+the installed CPython 3.14.7: FastAPI 0.142.2, plain Uvicorn 0.54.0, Pydantic 2.13.5
+(with cp314 `pydantic-core` wheels), SQLAlchemy 2.1.3 (cp314 wheels), HTTPX 0.28.1,
+pytest 9.1.1, Alembic 1.20.0, and python-multipart 0.0.32. `watchdog` 6.0.0 is the
+exception and is deferred. Nothing was installed; validation is metadata-level. Detail:
+[docs/ENVIRONMENT.md](ENVIRONMENT.md) §2.

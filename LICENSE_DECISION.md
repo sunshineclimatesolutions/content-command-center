@@ -2,12 +2,20 @@
 
 **Status: PENDING OWNER APPROVAL. No license is assigned to this project.**
 
+## Public visibility is not a license
+
+The repository was created **private** on 2026-10-03 and was deliberately made
+**public** by the owner so the architecture can be reviewed. Public visibility does
+**not** grant any permission to copy, modify, reuse, or redistribute this code or
+documentation. In the absence of a license, all rights are reserved by the owner.
+Anyone who wants to reuse any part must obtain written permission from the owner.
+
 ## Why there is no LICENSE file
 
-Content Command Center is a private, local-first business tool. Choosing a license for
-our own code is a business decision, separate from documenting the licenses of
-third-party components we use. This Stage 0 intentionally does **not** auto-assign an
-open-source license.
+Content Command Center is a local-first business tool. Choosing a license for our own
+code is a business decision, separate from documenting the licenses of third-party
+components we use. This project intentionally does **not** auto-assign an open-source
+license.
 
 ## Third-party license obligations already identified
 
@@ -28,8 +36,9 @@ open-source license.
 
 ## Decision options for the owner
 
-1. **All Rights Reserved (private tool)** — no public license; simplest for a private
-   business application; future Sparkling Standard use is internal.
+1. **All Rights Reserved** — no reuse license granted even though the repository is
+   publicly visible; simplest for a business application; future Sparkling Standard use
+   is internal.
 2. **A permissive license (MIT/Apache-2.0)** — if the owner wants to share reusable,
    non-private portions (e.g. the publisher-adapter contract or ingest safety module).
 3. **Defer** — continue private and revisit before any distribution.
