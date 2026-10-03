@@ -119,6 +119,17 @@ decision gets an entry with date, context, decision, alternatives, and consequen
 - **Consequences:** same account also owns the SCS website repo; isolation is enforced
   by repository boundaries and procedural gates (no cross-push ever).
 
+### ADR-016 — Branch protection/rulesets unavailable for this private repo; procedural gates only
+- **Status:** ACCEPTED (2026-10-03, verified)
+- **Context:** `gh api repos/sunshineclimatesolutions/content-command-center/rulesets` and
+  `.../branches/main/protection` both returned HTTP 403:
+  *"Upgrade to GitHub Pro or make this repository public to enable this feature."*
+- **Decision:** Do **not** upgrade billing or make the repository public. Enforce review
+  gates procedurally: `main` is documentation-only until owner approval; all future work
+  goes to `feature/stage-N-description` branches with draft PRs; merges require explicit
+  owner approval (see `AGENTS.md` §10). No false claim of technical enforcement.
+- **Consequences:** protection depends on discipline and review, not GitHub settings.
+
 ### Known documented conflicts (see also `docs/SOURCE_EVIDENCE.md`)
 - Facebook `scheduled_publish_time`: official pages state 30 days vs 75 days — exact
   value UNKNOWN pending live verification.

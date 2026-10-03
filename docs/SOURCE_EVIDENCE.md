@@ -25,6 +25,7 @@ rewrite of third-party content.
 | Disks | `Get-PSDrive` | `C:` ~633.4 GB free; `G:` ~601.7 GB free and appears to be a Google-Drive-style cloud mount (`My Drive`/`Shared drives`) — not counted as local durable storage |
 | Ancestor repo check | `git rev-parse --show-toplevel` in `C:\Websites` and the handoff folder | Neither is a git repository; project created as a separate folder |
 | Git identity | `git config --get user.name/user.email` | `Aaron` / `chairman@defend-network.org` (read only; not modified) |
+| GitHub branch rules | `gh api .../rulesets`, `.../branches/main/protection` | HTTP 403: "Upgrade to GitHub Pro or make this repository public to enable this feature." — no technical branch protection on this private repo under the active plan; procedural gates documented in ADR-016 |
 
 ## 2. SCS repository sources (read-only)
 
